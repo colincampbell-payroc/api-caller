@@ -52,8 +52,11 @@ my @intervals = (
     180     # 3 hours
 );
 
+open( my $fh, '>', 'app.log' ) or die $!;
+$fh->autoflush;
+
 foreach my $interval (@intervals) {
-    print "Waiting $interval minutes...\n";
+    print $fh "Waiting $interval minutes...\n";
 
     sleep $interval * 60;
 
@@ -68,10 +71,10 @@ foreach my $interval (@intervals) {
     );
 
     if ( $response->is_success ) {
-        print "POST request successful:\n", $response->decoded_content, "\n";
+        print $fh "POST request successful:\n", $response->decoded_content, "\n";
     }
     else {
-        print "Error:", $response->status_line, "\n";
+        print $fh "Error:", $response->status_line, "\n";
     }
 
     $counter++;
@@ -79,4 +82,6 @@ foreach my $interval (@intervals) {
     $cfg->write();
 }
 
-print "Finished\n";
+print $fh "Finished\n";
+
+close($fh);
