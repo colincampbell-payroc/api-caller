@@ -2,19 +2,21 @@
 use strict;
 use warnings;
 
-use LWP::UserAgent;
+use Config::Simple;
 use HTTP::Request::Common;
+use LWP::UserAgent;
 
-# URL to which you want to make the POST request
-my $url = 'http://calsdxtok01.sdx.payroc.dev/fcgi-bin/tokenator.fcgi';
+my $cfg = new Config::Simple('conf/app.cfg') or die "Unable to open conf/app.cfg: $!";
 
-# Form data to be sent in the POST request
+my $url     = $cfg->param('url');
+my $counter = $cfg->param('counter');
+
 my %form_data = (
     'TOKEN_ACTION'       => 'ADD',
     'COMPANY_ID'         => 'BLUEPAYQA',
     'TERMINAL_ID'        => 'BPQATEST',
     'PROGRAM_ID'         => 'TEST1',
-    'TOKEN'              => 'QAPREAUTH202402091433',
+    'TOKEN'              => 'QAPREAUTH2024020914' . $counter,
     'CARD_TYPE'          => 'MCRD',
     'CARD_PRODUCT'       => 'MC',
     'END_DATE'           => '21001230',
@@ -31,23 +33,24 @@ my %form_data = (
     'PRIVATE'            => '6011208880010601',
     'USER_ID'            => 'testuser',
     'PASS'               => 'password',
-    'DEBUG'              => 'Y',
+    'DEBUG'              => 'N',
 );
 
-# Create a user agent object
 my $ua = LWP::UserAgent->new;
 
-# Make the POST request with form data
 my $response = $ua->request(
     POST $url,
     Content_Type => 'form-data',
     Content      => \%form_data,
 );
 
-# Check if the request was successful
 if ( $response->is_success ) {
     print "POST request successful:\n", $response->decoded_content, "\n";
 }
 else {
     print "Error:", $response->status_line, "\n";
 }
+
+$counter++;
+$cfg->param( 'counter', $counter );
+$cfg->write();
