@@ -16,7 +16,7 @@ my %form_data = (
     'COMPANY_ID'         => 'BLUEPAYQA',
     'TERMINAL_ID'        => 'BPQATEST',
     'PROGRAM_ID'         => 'TEST1',
-    'TOKEN'              => 'QAPREAUTH2024020914' . $counter,
+    'TOKEN'              => 'QAPREAUTH20240209' . $counter,
     'CARD_TYPE'          => 'MCRD',
     'CARD_PRODUCT'       => 'MC',
     'END_DATE'           => '21001230',
@@ -36,21 +36,47 @@ my %form_data = (
     'DEBUG'              => 'N',
 );
 
-my $ua = LWP::UserAgent->new;
-
-my $response = $ua->request(
-    POST $url,
-    Content_Type => 'form-data',
-    Content      => \%form_data,
+my @intervals = (
+    0,
+    15,
+    30,
+    45,
+    60,     # 1 hour
+    75,
+    90,
+    105,
+    120,    # 2 hours
+    135,
+    150,
+    165,
+    180     # 3 hours
 );
 
-if ( $response->is_success ) {
-    print "POST request successful:\n", $response->decoded_content, "\n";
-}
-else {
-    print "Error:", $response->status_line, "\n";
+foreach my $interval (@intervals) {
+    print "Waiting $interval minutes...\n";
+
+    sleep $interval * 60;
+
+    $form_data{TOKEN} = 'QAPREAUTH20240209' . $counter;
+
+    my $ua = LWP::UserAgent->new;
+
+    my $response = $ua->request(
+        POST $url,
+        Content_Type => 'form-data',
+        Content      => \%form_data,
+    );
+
+    if ( $response->is_success ) {
+        print "POST request successful:\n", $response->decoded_content, "\n";
+    }
+    else {
+        print "Error:", $response->status_line, "\n";
+    }
+
+    $counter++;
+    $cfg->param( 'counter', $counter );
+    $cfg->write();
 }
 
-$counter++;
-$cfg->param( 'counter', $counter );
-$cfg->write();
+print "Finished\n";
